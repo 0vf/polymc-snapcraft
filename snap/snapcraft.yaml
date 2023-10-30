@@ -1,0 +1,103 @@
+name: polymc
+summary: A custom Minecraft launcher that allows you to manage multiple installations
+description: |
+  PolyMC is a custom launcher for Minecraft that focuses on predictability, 
+  long term stability and simplicity.
+
+  It features advanced instance and mod management, having the ability to download
+  mods and modpacks with ease, and it is built on a fast, stable core with the reliability
+  of MultiMC.
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+grade: devel
+confinement: strict
+base: core22
+version: '5.1' 
+
+layout:
+  /usr/share/libdrm/amdgpu.ids:
+    bind-file: $SNAP/graphics/usr/share/libdrm/amdgpu.ids
+  /usr/share/drirc.d:
+    bind: $SNAP/graphics/usr/share/drirc.d
+  /usr/share/glvnd/egl_vendor.d:
+    bind: $SNAP/graphics/usr/share/glvnd/egl_vendor.d
+  /etc/ld.so.cache:
+    bind-file: $SNAP_DATA/etc/ld.so.cache
+  /etc/fonts:
+    bind: $SNAP/etc/fonts
+
+plugs:
+  graphics-core22:
+    interface: content
+    target: $SNAP/graphics
+    default-provider: mesa-core22
+
+apps:
+  polymc:
+    command-chain:
+      - bin/graphics-core22-wrapper
+    extensions:
+      - kde-neon
+    command: usr/bin/polymc
+    desktop: meta/gui/polymc.desktop
+    plugs: [opengl, desktop, desktop-legacy, audio-playback, network, network-bind, home] # home is optional
+
+parts:
+  # workaround due to broken qt5charts in the kf5 snap sdk
+  qtcharts:
+    source: https://github.com/qt/qtcharts.git
+    plugin: make
+    build-packages: [wget, qt5-qmake]
+    override-pull: |
+      craftctl default
+      cd $CRAFT_PART_SRC
+      git checkout 5.15
+      git reset --hard e17308d5ce83a8b66aeeaaaf16ce16d4ee6b2826 # added just incase qt5.15 ever updates
+    override-build: |
+      qmake
+      craftctl default
+    override-prime: |
+      mkdir -p $CRAFT_PRIME/usr/lib/x86_64-linux-gnu
+      cp /usr/lib/x86_64-linux-gnu/libQt5Charts.so.5.15.11 $CRAFT_PRIME/usr/lib/x86_64-linux-gnu/libQt5Charts.so.5.15.11
+      cp /usr/lib/x86_64-linux-gnu/libQt5Charts.so.5.15.11 $CRAFT_PRIME/usr/lib/x86_64-linux-gnu/libQt5Charts.so.5
+      craftctl default
+    build-snaps:
+      - kf5-5-110-qt-5-15-11-core22-sdk
+      - kf5-5-110-qt-5-15-11-core22
+
+  polymc:
+    after: [qtcharts]
+    source: https://github.com/PolyMC/PolyMC.git
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DQt5Charts_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5Charts
+      - -DENABLE_LTO=ON
+    override-pull: |
+      craftctl default
+      cd $CRAFT_PART_SRC
+      git reset --hard 59fa701c2475c6017780d14f60c7b35f67a25ec4
+      patch -p1 < $CRAFT_PROJECT_DIR/patches/javautils-snapdetection.patch
+    build-snaps:
+      - kf5-5-110-qt-5-15-11-core22-sdk
+      - kf5-5-110-qt-5-15-11-core22
+    build-packages:
+      - extra-cmake-modules
+      - openjdk-8-jdk
+      - zlib1g-dev
+    stage-packages:
+      - openjdk-8-jre
+      - openjdk-11-jre
+      - openjdk-17-jre
+
+  graphics-core22:
+    after: [polymc]
+    source: https://github.com/MirServer/graphics-core22.git
+    plugin: dump
+    override-prime: |
+      craftctl default
+      ${CRAFT_PART_SRC}/bin/graphics-core22-cleanup mesa-core22 nvidia-core22
+    prime:
+    - bin/graphics-core22-wrapper

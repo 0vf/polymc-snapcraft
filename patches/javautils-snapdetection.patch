@@ -1,0 +1,14 @@
+diff --git a/launcher/java/JavaUtils.cpp b/launcher/java/JavaUtils.cpp
+index 2f91605b..05597c3c 100644
+--- a/launcher/java/JavaUtils.cpp
++++ b/launcher/java/JavaUtils.cpp
+@@ -435,6 +435,9 @@ QList<QString> JavaUtils::FindJavaPaths()
+             javas.append(FS::PathCombine(prefix, "bin/java"));
+         }
+     };
++
++    // snapcraft
++    scanJavaDir("/snap/polymc/current/usr/lib/jvm");
+     // oracle RPMs
+     scanJavaDir("/usr/java");
+     // general locations used by distro packaging
