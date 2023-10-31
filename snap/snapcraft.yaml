@@ -10,7 +10,7 @@ description: |
 architectures:
   - build-on: amd64
   - build-on: arm64
-grade: devel
+grade: stable
 confinement: strict
 base: core22
 version: '5.1' 
