@@ -86,8 +86,6 @@ parts:
     build-packages:
       - extra-cmake-modules
       - openjdk-8-jdk
-      - ca-certificates
-      - ca-certificates-java
       - zlib1g-dev
     stage-packages:
       - openjdk-8-jre
