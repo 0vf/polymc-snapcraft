@@ -41,7 +41,7 @@ apps:
       - kde-neon
     command: usr/bin/polymc
     desktop: meta/gui/polymc.desktop
-    plugs: [opengl, desktop, desktop-legacy, audio-playback, network, network-bind, home] # home is optional
+    plugs: [opengl, desktop, desktop-legacy, audio-playback, network, network-bind, joystick, home] # home is optional
 
 parts:
   # workaround due to broken qt5charts in the kf5 snap sdk
@@ -87,6 +87,7 @@ parts:
     build-packages:
       - extra-cmake-modules
       - openjdk-8-jdk
+      - libusb-1.0-0
       - zlib1g-dev
     stage-packages:
       - openjdk-8-jre
