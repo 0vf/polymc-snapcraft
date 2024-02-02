@@ -13,7 +13,7 @@ architectures:
 grade: stable
 confinement: strict
 base: core22
-version: '6.0' 
+version: '6.1' 
 
 layout:
   /usr/share/libdrm/amdgpu.ids:
@@ -78,7 +78,7 @@ parts:
     override-pull: |
       craftctl default
       cd $CRAFT_PART_SRC
-      git reset --hard bce5a8df35ed9dcd3acc5295d0167a8cc0157d8d
+      git reset --hard 52734e7bac07d287808cbc467c50152a0c2515dd
       patch -p1 < $CRAFT_PROJECT_DIR/patches/javautils-snapdetection.patch
       patch -p1 < $CRAFT_PROJECT_DIR/patches/removeactionbutton.patch
     build-snaps:
